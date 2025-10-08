@@ -8,6 +8,7 @@ import faqRouter from './routes/faq.js';
 import studiesRouter from './routes/studies.js';
 import giftsRouter from './routes/gifts.js';
 import questionsRouter from './routes/questions.js';
+import otpRouter from './routes/otp.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use('/api/faqs', faqRouter);
 app.use('/api/studies', studiesRouter);
 app.use('/api/gifts', giftsRouter);
 app.use('/api/questions', questionsRouter);
+app.use('/api/otp', otpRouter);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
