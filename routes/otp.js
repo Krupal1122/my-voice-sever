@@ -109,6 +109,66 @@ router.post('/request-reset', async (req, res) => {
   }
 });
 
+// Verify OTP only (without password reset)
+router.post('/verify-otp-only', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ 
+        ok: false, 
+        message: 'Email et OTP requis' 
+      });
+    }
+
+    // Find OTP record
+    const otpRecord = await OtpToken.findOne({ 
+      email, 
+      used: false 
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ 
+        ok: false, 
+        message: 'Code invalide ou expiré' 
+      });
+    }
+
+    // Check if OTP is expired
+    if (otpRecord.expiresAt < new Date()) {
+      await OtpToken.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ 
+        ok: false, 
+        message: 'Code expiré' 
+      });
+    }
+
+    // Verify OTP
+    const otpHash = hashOtp(otp);
+    if (otpHash !== otpRecord.otpHash) {
+      return res.status(400).json({ 
+        ok: false, 
+        message: 'Code incorrect' 
+      });
+    }
+
+    // Don't mark as used yet - will be marked when password is reset
+    console.log(`OTP verified successfully for ${email}`);
+
+    return res.json({ 
+      ok: true, 
+      message: 'Code vérifié avec succès' 
+    });
+
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    return res.status(500).json({ 
+      ok: false, 
+      message: 'Erreur interne du serveur' 
+    });
+  }
+});
+
 // Verify OTP and reset password
 router.post('/verify-otp', async (req, res) => {
   try {
